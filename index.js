@@ -26,9 +26,11 @@ try{
 
   // load all products 
   app.get('/products', async(req, res) => {
+    const size = Number(req.query.size);
     const query = {};
     const cursor = prodCollection.find(query);
-    const result = await cursor.toArray();
+    const result = await cursor.limit(size).toArray();
+    console.log(result.length)
     res.send(result)
   })
 
