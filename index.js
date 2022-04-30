@@ -43,7 +43,15 @@ try{
   })
   // update increase quantity 
   app.put('/update', async(req, res) => {
-    console.log(req.query)
+    const newQuantity = {quantity: Number(req.query.quantity)};
+    const id = req.query.id;
+    console.log(newQuantity.quantity)
+    const find = {_id: ObjectId(id)};
+    const options = { upsert: true };
+    const updatedQuantity = {
+      $set: newQuantity
+    }
+    const result = await prodCollection.updateOne(find, updatedQuantity, options);
   })
 
 }
