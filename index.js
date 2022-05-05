@@ -41,7 +41,7 @@ try{
     const result = await prodCollection.findOne(query);
     res.send(result)
   })
-  // update increase quantity 
+  // update increase and decrease quantity 
   app.put('/update', async(req, res) => {
     const newQuantity = {quantity: Number(req.query.quantity)};
     const id = req.query.id;
@@ -52,6 +52,27 @@ try{
       $set: newQuantity
     }
     const result = await prodCollection.updateOne(find, updatedQuantity, options);
+  })
+  // remove item 
+  app.get('/remove', async(req, res) => {
+    const id = req.query.rmitem;
+    const query = {_id: ObjectId(id)};
+    const result = await prodCollection.deleteOne(query);
+    res.send(result)
+  })
+  // add items 
+  app.post('/additem', async(req, res) => {
+    const item = req.body;
+    const result = await prodCollection.insertOne(item);
+    console.log(result)
+  })
+  // get item filtered by email 
+  app.get('/myitems', async(req, res) => {
+    const email = req.query.email;
+    const query = {email};
+    const cursor = prodCollection.find(query);
+    const result = await cursor.toArray();
+    res.send(result)
   })
 
 }
