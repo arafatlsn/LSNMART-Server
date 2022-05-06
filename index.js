@@ -5,6 +5,7 @@ const port = process.env.PORT || 5000;
 const cors = require('cors')
 const { MongoClient, ServerApiVersion } = require('mongodb');
 require('dotenv').config();
+const jwt = require('jsonwebtoken')
 
 // middleware 
 app.use(cors());
@@ -45,7 +46,6 @@ try{
   app.put('/update', async(req, res) => {
     const newQuantity = {quantity: Number(req.query.quantity)};
     const id = req.query.id;
-    console.log(newQuantity.quantity)
     const find = {_id: ObjectId(id)};
     const options = { upsert: true };
     const updatedQuantity = {
@@ -64,15 +64,41 @@ try{
   app.post('/additem', async(req, res) => {
     const item = req.body;
     const result = await prodCollection.insertOne(item);
-    console.log(result)
   })
+
+  // verify jwt token 
+  function verifyJwt(req, res, next){
+    const myToken = JSON.parse(req.headers.authorization.split(' ')[1]);
+    if(!myToken){
+      return res.status(401).send({message:'unauthorized access'});
+    }
+    jwt.verify(myToken, process.env.ACCESS_TOKEN, (error, decoded) => {
+      if(error){
+        return res.status(403).send({message:'forbidden access'})
+      }
+      req.decoded = decoded;
+      next()
+    })
+  }
+
   // get item filtered by email 
-  app.get('/myitems', async(req, res) => {
+  app.get('/myitems', verifyJwt, async(req, res) => {
     const email = req.query.email;
-    const query = {email};
-    const cursor = prodCollection.find(query);
-    const result = await cursor.toArray();
-    res.send(result)
+    const decodedEmail = req.decoded;
+    if(email === decodedEmail){
+      const query = {email};
+      const cursor = prodCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result)
+    }
+    else{
+      res.status(403).send({message:'forbidden access'})
+    }
+  })
+  app.get('/signin', async(req, res) => {
+    const user = req.query.email;
+    const token = jwt.sign(user, process.env.ACCESS_TOKEN);
+    res.send(token);
   })
 
 }
