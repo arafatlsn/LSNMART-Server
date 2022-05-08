@@ -32,7 +32,6 @@ try{
     const query = {};
     const cursor = prodCollection.find(query);
     const result = await cursor.limit(size).toArray();
-    console.log(result.length)
     res.send(result)
   })
   // load single product
